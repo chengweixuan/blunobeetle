@@ -59,7 +59,7 @@ bool isValidCommandPacket(uint8_t commandPacket) {
 
 uint8_t calculateCRC() {
   uint8_t polynomial = 0b10000111; // not used
-  return 12; // to be completed
+  return CHECKSUM; // to be completed
 }
 
 struct SensorData getSensorData(uint16_t xAccel, uint16_t yAccel, 

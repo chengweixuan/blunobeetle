@@ -48,7 +48,8 @@ MPU6050 mpu;
 #define BAUD_RATE 115200
 #define INTERRUPT_PIN 2  // use pin 2 on Arduino Uno & most boards
 #define LED_PIN 13 // (Arduino is 13, Teensy is 11, Teensy++ is 6)
-#define SAMPLE_INTERVAL 20 // 40 millis = 25Hz
+#define EMG_INPUT_PIN 0
+#define SAMPLE_INTERVAL 50 // 40 millis = 25Hz
 
 // Sensor Sampling and Sending Rate
 long int last_read_time = 0; // Beetle last read timestamp (millis)
@@ -100,6 +101,13 @@ CircularBuffer<int, 50> GyroRollBuffer; //to detect left right acc, size 25, 1 s
 // Threshold: Arm Pointing Down
 int gryo_roll_delta_threshold_max = 20; // difference btw current roll andgle and pointing down angle (90 degrees)e.g should be below 20 to be considered to be pointing downwards
 int gryo_roll_delta_threshold_min = 0;
+
+// EMG globals
+float emg_mean = 0; // mean absolute value of emg during entire session
+long long emg_samples = 0; //number of emg samples taken during entire session
+int emg_startup_count = 0; // number of readings for the emg to calibrate and initialise
+int fatigue_flag = 0; // 0 not fatigued; 1 fatigued
+float fatigue_threshold = 0.25;
 
 // Threshold: Detect if moving LEFT or RIGHT when IDLE
 int acc_z_move_threshold = 500;
@@ -253,19 +261,60 @@ void setupSensors() {
     devStatus = mpu.dmpInitialize();
 
     // supply your own gyro offsets here, scaled for min sensitivity
-    mpu.setXGyroOffset(188);
-    mpu.setYGyroOffset(-8);
-    mpu.setZGyroOffset(87);
 
-//    mpu.setYGyroOffset(0);
-//    mpu.setZGyroOffset(0);
-    mpu.setXAccelOffset(-150);
-    mpu.setYAccelOffset(52);
-    mpu.setZAccelOffset(1162);
-//    mpu.setXGyroOffset(17);
-//    mpu.setYGyroOffset(-69);
-//    mpu.setZGyroOffset(-259);
-//    mpu.setZAccelOffset(1551);
+//    // test beetle
+//    mpu.setXAccelOffset(-150);
+//    mpu.setYAccelOffset(52);
+//    mpu.setZAccelOffset(1162);
+//
+//    mpu.setXGyroOffset(188);
+//    mpu.setYGyroOffset(-8);
+//    mpu.setZGyroOffset(87);
+
+    // black beetle
+    mpu.setXAccelOffset(-5568);
+    mpu.setYAccelOffset(-1729);
+    mpu.setZAccelOffset(1318);
+
+    mpu.setXGyroOffset(71);
+    mpu.setYGyroOffset(-19);
+    mpu.setZGyroOffset(-259);
+//
+//    // EMG beetle
+//    mpu.setXAccelOffset(-5451);
+//    mpu.setYAccelOffset(-2764);
+//    mpu.setZAccelOffset(1660);
+//
+//    mpu.setXGyroOffset(120);
+//    mpu.setYGyroOffset(-26);
+//    mpu.setZGyroOffset(-12);
+ 
+//    // naked beetle
+//    mpu.setXAccelOffset(-933);
+//    mpu.setYAccelOffset(576);
+//    mpu.setZAccelOffset(22);
+//
+//    mpu.setXGyroOffset(291);
+//    mpu.setYGyroOffset(-25);
+//    mpu.setZGyroOffset(-2);
+
+//    // plastic beetle
+//    mpu.setXAccelOffset(-2936);
+//    mpu.setYAccelOffset(340);
+//    mpu.setZAccelOffset(1270);
+//
+//    mpu.setXGyroOffset(61);
+//    mpu.setYGyroOffset(-103);
+//    mpu.setZGyroOffset(2);
+
+//    // white beetle
+//    mpu.setXAccelOffset(-1511);
+//    mpu.setYAccelOffset(1864);
+//    mpu.setZAccelOffset(1533);
+//
+//    mpu.setXGyroOffset(37);
+//    mpu.setYGyroOffset(-12);
+//    mpu.setZGyroOffset(43);
 
     // make sure it worked (returns 0 if so)
     if (devStatus == 0) {
@@ -302,6 +351,35 @@ void setupSensors() {
 
     // configure LED for output
     pinMode(LED_PIN, OUTPUT);
+}
+
+void detectFatigue() {
+//  int emg_mean = 0; // mean absolute value of emg during entire session
+//  int emg_samples = 0; //number of emg samples taken during entire session
+//  int emg_startup_count = 0; // number of readings for the emg to calibrate and initialise
+  TimePlot Plot;
+  int EMGValue = analogRead(EMG_INPUT_PIN);
+//  Plot.SendData("Raw-EMG", EMGValue/1000.0);
+  if (emg_startup_count < 150) {
+    emg_startup_count++;
+  } else {
+    emg_samples++;
+    emg_mean = (emg_mean * (emg_samples - 1) + EMGValue/1000.0) / emg_samples;
+//    Plot.SendData("EMG-Mean", emg_mean);
+  }
+  // Set flag: Dancer Fatigue Flag
+  if (fatigue_flag == 0) {
+    if (emg_mean >= fatigue_threshold) {
+      fatigue_flag = 1; // not fatigued -> fatigued
+//      Plot.SendData("fatigue_flag", fatigue_flag);
+    }
+  } else if (fatigue_flag == 1) {
+    if (emg_mean < fatigue_threshold) {
+      fatigue_flag = 0; // fatigued -> not fatigued
+//      Plot.SendData("fatigue_flag", fatigue_flag);
+    }
+  }
+  
 }
 
 void readSensors() {
@@ -357,6 +435,8 @@ void readSensors() {
       blinkState = !blinkState;
       digitalWrite(LED_PIN, blinkState);
     }
+
+    detectFatigue();
 }
 
 
@@ -408,11 +488,10 @@ void loop() {
     if (millis() > last_read_time + SAMPLE_INTERVAL && connected) {
       last_read_time = millis();
 
+      readSensors(); // update sensor values
       makePacket();
       Serial.write((byte*)&dataPacket, sizeof(dataPacket));
       Serial.flush();
-
-      readSensors(); // update sensor values for the next packet
     }
   }
 
