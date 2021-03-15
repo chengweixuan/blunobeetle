@@ -18,7 +18,7 @@ struct DataPacket
   uint8_t startByte;
   uint8_t statusData;
   SensorData sensorData;
-  uint8_t CRC;
+  uint16_t EMG;
   uint8_t endByte;
 };
 
@@ -79,12 +79,12 @@ uint16_t getRow(uint16_t row) {
   return row;
 }
 
-struct DataPacket makeDataPacket(uint8_t startPosition, uint8_t dancerState, uint8_t leftRightStatus, SensorData sensorData) {
+struct DataPacket makeDataPacket(uint8_t startPosition, uint8_t dancerState, uint8_t leftRightStatus, SensorData sensorData, uint16_t EMG) {
   DataPacket packet;
   packet.startByte = 0xAC;
   packet.statusData = (startPosition << 6) + (dancerState << 2) + leftRightStatus; 
   packet.sensorData = sensorData;
-  packet.CRC = calculateCRC();
+  packet.EMG = EMG;
   packet.endByte = 0xBE;
 
   return packet;

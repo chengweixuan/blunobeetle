@@ -49,7 +49,7 @@ MPU6050 mpu;
 #define INTERRUPT_PIN 2  // use pin 2 on Arduino Uno & most boards
 #define LED_PIN 13 // (Arduino is 13, Teensy is 11, Teensy++ is 6)
 #define EMG_INPUT_PIN 0
-#define SAMPLE_INTERVAL 50 // 40 millis = 25Hz
+#define SAMPLE_INTERVAL 40 // 40 millis = 25Hz
 
 // Sensor Sampling and Sending Rate
 long int last_read_time = 0; // Beetle last read timestamp (millis)
@@ -271,14 +271,14 @@ void setupSensors() {
 //    mpu.setYGyroOffset(-8);
 //    mpu.setZGyroOffset(87);
 
-    // black beetle
-    mpu.setXAccelOffset(-5568);
-    mpu.setYAccelOffset(-1729);
-    mpu.setZAccelOffset(1318);
-
-    mpu.setXGyroOffset(71);
-    mpu.setYGyroOffset(-19);
-    mpu.setZGyroOffset(-259);
+//    // black beetle
+//    mpu.setXAccelOffset(-5568);
+//    mpu.setYAccelOffset(-1729);
+//    mpu.setZAccelOffset(1318);
+//
+//    mpu.setXGyroOffset(71);
+//    mpu.setYGyroOffset(-19);
+//    mpu.setZGyroOffset(-259);
 //
 //    // EMG beetle
 //    mpu.setXAccelOffset(-5451);
@@ -307,14 +307,14 @@ void setupSensors() {
 //    mpu.setYGyroOffset(-103);
 //    mpu.setZGyroOffset(2);
 
-//    // white beetle
-//    mpu.setXAccelOffset(-1511);
-//    mpu.setYAccelOffset(1864);
-//    mpu.setZAccelOffset(1533);
-//
-//    mpu.setXGyroOffset(37);
-//    mpu.setYGyroOffset(-12);
-//    mpu.setZGyroOffset(43);
+    // white beetle
+    mpu.setXAccelOffset(-1511);
+    mpu.setYAccelOffset(1864);
+    mpu.setZAccelOffset(1533);
+
+    mpu.setXGyroOffset(37);
+    mpu.setYGyroOffset(-12);
+    mpu.setZGyroOffset(43);
 
     // make sure it worked (returns 0 if so)
     if (devStatus == 0) {
@@ -357,7 +357,7 @@ void detectFatigue() {
 //  int emg_mean = 0; // mean absolute value of emg during entire session
 //  int emg_samples = 0; //number of emg samples taken during entire session
 //  int emg_startup_count = 0; // number of readings for the emg to calibrate and initialise
-  TimePlot Plot;
+  // TimePlot Plot;
   int EMGValue = analogRead(EMG_INPUT_PIN);
 //  Plot.SendData("Raw-EMG", EMGValue/1000.0);
   if (emg_startup_count < 150) {
@@ -462,7 +462,7 @@ void loop() {
       digitalWrite(LED_PIN, blinkState);
       delay(1000);
     }
-  
+
   // handles BLE commands and handshake with laptop
   if (Serial.available() > 0) {
     uint8_t receivedByte = Serial.read();
@@ -499,7 +499,8 @@ void loop() {
 
 void makePacket() {
   sensorData = getSensorData(AccX, AccY, AccZ, GyroYaw, GyroPitch, GyroRoll);
-  dataPacket = makeDataPacket(startPosition, dancer_state, feature_left_right_null, sensorData);
+  uint16_t EMGint = (int)(emg_mean * 1000);
+  dataPacket = makeDataPacket(startPosition, dancer_state, feature_left_right_null, sensorData, EMGint);
 }
 
 void makeTestPacket() {
@@ -510,5 +511,5 @@ void makeTestPacket() {
   uint16_t GyroPitch2 = -20;
   uint16_t GyroRoll2 = 173;
   sensorData = getSensorData(AccX2, AccY2, AccZ2, GyroYaw2, GyroPitch2, GyroRoll2);
-  dataPacket = makeDataPacket(1, 0, 1, getSensorData(AccX2, AccY2, AccZ2, GyroYaw2, GyroPitch2, GyroRoll2));
+  dataPacket = makeDataPacket(1, 0, 1, getSensorData(AccX2, AccY2, AccZ2, GyroYaw2, GyroPitch2, GyroRoll2), 0);
 }
