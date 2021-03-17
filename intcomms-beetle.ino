@@ -306,20 +306,6 @@ void setupSensors() {
         Fastwire::setup(400, true);
     #endif
 
-    // initialize serial communication
-    // (115200 chosen because it is required for Teapot Demo output, but it's
-    // really up to you depending on your project)
-    // Serial.begin(115200);
-    // while (!Serial); // wait for Leonardo enumeration, others continue immediately
-
-    // NOTE: 8MHz or slower host processors, like the Teensy @ 3.3V or Arduino
-    // Pro Mini running at 3.3V, cannot handle this baud rate reliably due to
-    // the baud timing being too misaligned with processor ticks. You must use
-    // 38400 or slower in these cases, or use some kind of external separate
-    // crystal solution for the UART timer.
-
-    // initialize device
-    // Serial.println(F("Initializing I2C devices..."));
     mpu.initialize();
 /*    
     pinMode(INTERRUPT_PIN, INPUT);
@@ -415,20 +401,6 @@ void readSensors() {
         mpu.dmpGetGravity(&gravity, &q);
         mpu.dmpGetLinearAccel(&aaReal, &aa, &gravity);
         mpu.dmpGetYawPitchRoll(ypr, &q, &gravity);
-        
-//            Serial.print("areal\t");
-//            Serial.print(aaReal.x);
-//            Serial.print("\t");
-//            Serial.print(aaReal.y);
-//            Serial.print("\t");
-//            Serial.println(aaReal.z);
-
-//            Serial.print("ypr\t");
-//            Serial.print(ypr[0] * 180/M_PI);
-//            Serial.print("\t");
-//            Serial.print(ypr[1] * 180/M_PI);
-//            Serial.print("\t");
-//            Serial.println(ypr[2] * 180/M_PI);
 
         AccXFilter.Filter(aaReal.x);
         AccYFilter.Filter(aaReal.y);
