@@ -51,12 +51,12 @@ MPU6050 mpu;
 #define EMG_INPUT_PIN 0
 #define SAMPLE_INTERVAL 50 // 40 millis = 25Hz
 
-#define TEST_BEETLE 0
-#define BLACK_BEETLE 1 // DANCE
-#define EMG_BEETLE 2
-#define YELLOW_BEETLE 3 // NAKED
-#define TEAL_BEETLE 4 // ZIPLOCK/PLASTIC
-#define WHITE_BEETLE 5
+#define TEST_BEETLE 0 // NIC
+#define BLACK_BEETLE 1 // DANCE // CHI
+#define EMG_BEETLE 2 // XIANHAO
+#define YELLOW_BEETLE 3 // NAKED // SIYING
+#define TEAL_BEETLE 4 // ZIPLOCK/PLASTIC // NIC
+#define WHITE_BEETLE 5 // JEFF
 
 // Sensor Sampling and Sending Rate
 long int last_read_time = 0; // Beetle last read timestamp (millis)
