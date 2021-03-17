@@ -52,10 +52,10 @@ MPU6050 mpu;
 #define SAMPLE_INTERVAL 50 // 40 millis = 25Hz
 
 #define TEST_BEETLE 0
-#define BLACK_BEETLE 1
+#define BLACK_BEETLE 1 // DANCE
 #define EMG_BEETLE 2
-#define NAKED_BEETLE 3
-#define PLASTIC_BEETLE 4
+#define YELLOW_BEETLE 3 // NAKED
+#define TEAL_BEETLE 4 // ZIPLOCK/PLASTIC
 #define WHITE_BEETLE 5
 
 // Sensor Sampling and Sending Rate
@@ -231,68 +231,71 @@ void detectActivity() {
 
 }
 
-//void calibrateSensor(int beetleNo) {
-//  switch (beetleNo)
-//  {
-//    case TEST_BEETLE:
-//   
-//  }
-//
-//  
-//  //    // test beetle
-////    mpu.setXAccelOffset(-150);
-////    mpu.setYAccelOffset(52);
-////    mpu.setZAccelOffset(1162);
-////
-////    mpu.setXGyroOffset(188);
-////    mpu.setYGyroOffset(-8);
-////    mpu.setZGyroOffset(87);
-//
-//    // black beetle
-//    mpu.setXAccelOffset(-5568);
-//    mpu.setYAccelOffset(-1729);
-//    mpu.setZAccelOffset(1318);
-//
-//    mpu.setXGyroOffset(71);
-//    mpu.setYGyroOffset(-19);
-//    mpu.setZGyroOffset(-259);
-////
-////    // EMG beetle
-////    mpu.setXAccelOffset(-5451);
-////    mpu.setYAccelOffset(-2764);
-////    mpu.setZAccelOffset(1660);
-////
-////    mpu.setXGyroOffset(120);
-////    mpu.setYGyroOffset(-26);
-////    mpu.setZGyroOffset(-12);
-// 
-////    // naked beetle
-////    mpu.setXAccelOffset(-933);
-////    mpu.setYAccelOffset(576);
-////    mpu.setZAccelOffset(22);
-////
-////    mpu.setXGyroOffset(291);
-////    mpu.setYGyroOffset(-25);
-////    mpu.setZGyroOffset(-2);
-//
-////    // plastic beetle
-////    mpu.setXAccelOffset(-2936);
-////    mpu.setYAccelOffset(340);
-////    mpu.setZAccelOffset(1270);
-////
-////    mpu.setXGyroOffset(61);
-////    mpu.setYGyroOffset(-103);
-////    mpu.setZGyroOffset(2);
-//
-//    // white beetle
-//    mpu.setXAccelOffset(-1511);
-//    mpu.setYAccelOffset(1864);
-//    mpu.setZAccelOffset(1533);
-//
-//    mpu.setXGyroOffset(37);
-//    mpu.setYGyroOffset(-12);
-//    mpu.setZGyroOffset(43);
-//}
+void calibrateSensor(int beetleNo) {
+  switch (beetleNo)
+  {
+    case TEST_BEETLE:
+      mpu.setXAccelOffset(-150);
+      mpu.setYAccelOffset(52);
+      mpu.setZAccelOffset(1162);
+  
+      mpu.setXGyroOffset(188);
+      mpu.setYGyroOffset(-8);
+      mpu.setZGyroOffset(87);
+    break;
+
+    case BLACK_BEETLE:
+      mpu.setXAccelOffset(-5568);
+      mpu.setYAccelOffset(-1729);
+      mpu.setZAccelOffset(1318);
+  
+      mpu.setXGyroOffset(71);
+      mpu.setYGyroOffset(-19);
+      mpu.setZGyroOffset(-259);
+    break;
+
+    case EMG_BEETLE:
+      mpu.setXAccelOffset(-5451);
+      mpu.setYAccelOffset(-2764);
+      mpu.setZAccelOffset(1660);
+  
+      mpu.setXGyroOffset(120);
+      mpu.setYGyroOffset(-26);
+      mpu.setZGyroOffset(-12);
+    break;
+
+    case YELLOW_BEETLE:
+      mpu.setXAccelOffset(-933);
+      mpu.setYAccelOffset(576);
+      mpu.setZAccelOffset(22);
+  
+      mpu.setXGyroOffset(291);
+      mpu.setYGyroOffset(-25);
+      mpu.setZGyroOffset(-2);
+    break;
+
+    case TEAL_BEETLE:
+      mpu.setXAccelOffset(-2936);
+      mpu.setYAccelOffset(340);
+      mpu.setZAccelOffset(1270);
+  
+      mpu.setXGyroOffset(61);
+      mpu.setYGyroOffset(-103);
+      mpu.setZGyroOffset(2);
+    break;
+
+    case WHITE_BEETLE:
+      mpu.setXAccelOffset(-1511);
+      mpu.setYAccelOffset(1864);
+      mpu.setZAccelOffset(1533);
+  
+      mpu.setXGyroOffset(37);
+      mpu.setYGyroOffset(-12);
+      mpu.setZGyroOffset(43);
+    break;
+  }
+
+}
 
 void setupSensors() {
   // join I2C bus (I2Cdev library doesn't do this automatically)
@@ -336,60 +339,7 @@ void setupSensors() {
     devStatus = mpu.dmpInitialize();
 
     // supply your own gyro offsets here, scaled for min sensitivity
-
-//    // test beetle
-//    mpu.setXAccelOffset(-150);
-//    mpu.setYAccelOffset(52);
-//    mpu.setZAccelOffset(1162);
-//
-//    mpu.setXGyroOffset(188);
-//    mpu.setYGyroOffset(-8);
-//    mpu.setZGyroOffset(87);
-
-//    // black beetle
-//    mpu.setXAccelOffset(-5568);
-//    mpu.setYAccelOffset(-1729);
-//    mpu.setZAccelOffset(1318);
-//
-//    mpu.setXGyroOffset(71);
-//    mpu.setYGyroOffset(-19);
-//    mpu.setZGyroOffset(-259);
-//
-//    // EMG beetle
-//    mpu.setXAccelOffset(-5451);
-//    mpu.setYAccelOffset(-2764);
-//    mpu.setZAccelOffset(1660);
-//
-//    mpu.setXGyroOffset(120);
-//    mpu.setYGyroOffset(-26);
-//    mpu.setZGyroOffset(-12);
- 
-//    // naked beetle
-//    mpu.setXAccelOffset(-1069);
-//    mpu.setYAccelOffset(409);
-//    mpu.setZAccelOffset(10);
-//
-//    mpu.setXGyroOffset(292);
-//    mpu.setYGyroOffset(-8);
-//    mpu.setZGyroOffset(1);
-
-    // plastic beetle
-    mpu.setXAccelOffset(-2994);
-    mpu.setYAccelOffset(103);
-    mpu.setZAccelOffset(1253);
-
-    mpu.setXGyroOffset(63);
-    mpu.setYGyroOffset(-99);
-    mpu.setZGyroOffset(-6);
-
-//    // white beetle
-//    mpu.setXAccelOffset(-1511);
-//    mpu.setYAccelOffset(1864);
-//    mpu.setZAccelOffset(1533);
-//
-//    mpu.setXGyroOffset(37);
-//    mpu.setYGyroOffset(-12);
-//    mpu.setZGyroOffset(43);
+    calibrateSensor(TEAL_BEETLE);
 
     // make sure it worked (returns 0 if so)
     if (devStatus == 0) {
