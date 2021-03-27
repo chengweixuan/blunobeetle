@@ -51,12 +51,12 @@ MPU6050 mpu;
 #define EMG_INPUT_PIN 0
 #define SAMPLE_INTERVAL 50 // 40 millis = 25Hz
 
-#define TEST_BEETLE 0 // NIC
-#define BLACK_BEETLE 1 // DANCE // CHI
-#define EMG_BEETLE 2 // XIANHAO
-#define YELLOW_BEETLE 3 // NAKED // SIYING
-#define TEAL_BEETLE 4 // ZIPLOCK/PLASTIC // NIC
-#define WHITE_BEETLE 5 // JEFF
+#define TEST_BEETLE 1 // WEIXUAN
+#define BLACK_BEETLE 2 // DANCE // CHI
+#define EMG_BEETLE 3 // XIANHAO
+#define YELLOW_BEETLE 4 // NAKED // SIYING
+#define TEAL_BEETLE 5 // ZIPLOCK/PLASTIC // NIC
+#define WHITE_BEETLE 6 // JEFF
 
 // Sensor Sampling and Sending Rate
 long int last_read_time = 0; // Beetle last read timestamp (millis)
@@ -106,8 +106,8 @@ CircularBuffer<int, 50> GyroRollBuffer; //to detect left right acc, size 25, 1 s
 
 //Feature thresholds
 // Threshold: Arm Pointing Down
-int gryo_roll_delta_threshold_max = 20; // difference btw current roll andgle and pointing down angle (90 degrees)e.g should be below 20 to be considered to be pointing downwards
-int gryo_roll_delta_threshold_min = -5;
+int gryo_roll_delta_threshold_max = 30; // difference btw current roll andgle and pointing down angle (90 degrees)e.g should be below 20 to be considered to be pointing downwards
+int gryo_roll_delta_threshold_min = -30;
 
 // EMG globals
 float emg_mean = 0; // mean absolute value of emg during entire session
@@ -117,7 +117,7 @@ int fatigue_flag = 0; // 0 not fatigued; 1 fatigued
 float fatigue_threshold = 0.25;
 
 // Threshold: Detect if moving LEFT or RIGHT when IDLE
-int acc_z_move_threshold = 500;
+int acc_z_move_threshold = 400;
 // ------- END OF SENSOR GLOBALS --------- //
 
 
@@ -191,13 +191,15 @@ void detectActivity() {
   int AccZBufferSize = AccZBuffer.size();
   
   for (int i = 0; i< min(AccXBufferSize, AccZBufferSize); i++) {
-    if ((AccZBuffer[i] > acc_z_move_threshold) && (AccZBuffer[i] > 0 && AccXBuffer[i] > 0)) {
+//    if ((AccZBuffer[i] > acc_z_move_threshold) && (AccZBuffer[i] > 0 && AccXBuffer[i] > 0)) 
+//((AccZBuffer[i] < -acc_z_move_threshold) && (AccZBuffer[i] < 0 && AccXBuffer[i] < 0))
+    if ((AccZBuffer[i] > acc_z_move_threshold)) {
       acc_pos_peak_detected = true;
       if (acc_neg_peak_detected == true) {
         move_left_detected = false;
         move_right_detected = true;
       }
-    } else if ((AccZBuffer[i] < -acc_z_move_threshold) && (AccZBuffer[i] < 0 && AccXBuffer[i] < 0)) {
+    } else if ((AccZBuffer[i] < -acc_z_move_threshold)) {
       acc_neg_peak_detected = true;
       if (acc_pos_peak_detected == true) {
         move_left_detected = true;
@@ -235,13 +237,13 @@ void calibrateSensor(int beetleNo) {
   switch (beetleNo)
   {
     case TEST_BEETLE:
-      mpu.setXAccelOffset(-150);
-      mpu.setYAccelOffset(52);
-      mpu.setZAccelOffset(1162);
+      mpu.setXAccelOffset(-713);
+      mpu.setYAccelOffset(378);
+      mpu.setZAccelOffset(1032);
   
-      mpu.setXGyroOffset(188);
-      mpu.setYGyroOffset(-8);
-      mpu.setZGyroOffset(87);
+      mpu.setXGyroOffset(112);
+      mpu.setYGyroOffset(8);
+      mpu.setZGyroOffset(-16);
     break;
 
     case BLACK_BEETLE:
@@ -325,7 +327,7 @@ void setupSensors() {
     devStatus = mpu.dmpInitialize();
 
     // supply your own gyro offsets here, scaled for min sensitivity
-    calibrateSensor(TEAL_BEETLE);
+    calibrateSensor(BLACK_BEETLE);
 
     // make sure it worked (returns 0 if so)
     if (devStatus == 0) {
@@ -486,6 +488,9 @@ void loop() {
       last_read_time = millis();
 
       readSensors(); // update sensor values
+
+      // dancer_state = isIdle();
+      
       makePacket();
       Serial.write((byte*)&dataPacket, sizeof(dataPacket));
       Serial.flush();
@@ -494,6 +499,10 @@ void loop() {
     }
   }
 
+}
+
+bool isIdle() {
+  double total = (AccX * AccX) + AccY;
 }
 
 void makePacket() {
