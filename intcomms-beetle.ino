@@ -51,7 +51,7 @@ MPU6050 mpu;
 #define EMG_INPUT_PIN 0
 #define SAMPLE_INTERVAL 50 // 40 millis = 25Hz
 
-#define TEST_BEETLE 1 // WEIXUAN
+#define BLUE_BEETLE 1 // WEIXUAN
 #define BLACK_BEETLE 2 // DANCE // CHI
 #define EMG_BEETLE 3 // XIANHAO
 #define YELLOW_BEETLE 4 // NAKED // SIYING
@@ -86,14 +86,14 @@ float ypr[3];           // [yaw, pitch, roll]   yaw/pitch/roll container and gra
 uint8_t teapotPacket[14] = { '$', 0x02, 0,0, 0,0, 0,0, 0,0, 0x00, 0x00, '\r', '\n' };
 
 // MegunoLink Exponential Filter Vars
-long FilterWeight = 5;
-ExponentialFilter<long> AccXFilter(FilterWeight, 0);
-ExponentialFilter<long> AccYFilter(FilterWeight, 0);
-ExponentialFilter<long> AccZFilter(FilterWeight, 0);
+long FilterWeight = 10;
+ExponentialFilter<long> AccXFilter(80, 0);
+ExponentialFilter<long> AccYFilter(80, 0);
+ExponentialFilter<long> AccZFilter(80, 0);
 
-ExponentialFilter<long> GyroYawFilter(FilterWeight, 0);
-ExponentialFilter<long> GyroPitchFilter(FilterWeight, 0);
-ExponentialFilter<long> GyroRollFilter(FilterWeight, 0);
+ExponentialFilter<long> GyroYawFilter(20, 0);
+ExponentialFilter<long> GyroPitchFilter(20, 0);
+ExponentialFilter<long> GyroRollFilter(20, 0);
 
 //CircularBuffer Buffer Vars
 CircularBuffer<int, 50> AccXBuffer; //to detect left right acc, size 25, 1 second of AccX Data
@@ -177,10 +177,6 @@ void detectActivity() {
     AccZBuffer.clear() ;
   }
 
-  //Feature_2a: Detection of Acc spike pattern
-  //    - AccZ (+ve) AND AccX (+ve) BEFORE AccZ (-ve) AND AccX (-ve) -> LEFT
-  //    - AccZ (-ve) AND AccX (-ve) BEFORE AccZ (+ve) AND AccX (+ve) -> RIGHT
-
   bool acc_pos_peak_detected = false;
   bool acc_neg_peak_detected = false;
 
@@ -236,7 +232,7 @@ void detectActivity() {
 void calibrateSensor(int beetleNo) {
   switch (beetleNo)
   {
-    case TEST_BEETLE:
+    case BLUE_BEETLE:
       mpu.setXAccelOffset(-713);
       mpu.setYAccelOffset(378);
       mpu.setZAccelOffset(1032);
@@ -309,25 +305,13 @@ void setupSensors() {
     #endif
 
     mpu.initialize();
-/*    
-    pinMode(INTERRUPT_PIN, INPUT);
-*/
-    // verify connection
-    // Serial.println(F("Testing device connections..."));
-    // Serial.println(mpu.testConnection() ? F("MPU6050 connection successful") : F("MPU6050 connection failed"));
-/*
-    // wait for ready
-    Serial.println(F("\nSend any character to begin DMP programming and demo: "));
-    while (Serial.available() && Serial.read()); // empty buffer
-    while (!Serial.available());                 // wait for data
-    while (Serial.available() && Serial.read()); // empty buffer again
-*/
+
     // load and configure the DMP
     // Serial.println(F("Initializing DMP..."));
     devStatus = mpu.dmpInitialize();
 
     // supply your own gyro offsets here, scaled for min sensitivity
-    calibrateSensor(BLACK_BEETLE);
+    calibrateSensor(EMG_BEETLE);
 
     // make sure it worked (returns 0 if so)
     if (devStatus == 0) {
@@ -338,14 +322,7 @@ void setupSensors() {
         // turn on the DMP, now that it's ready
         // Serial.println(F("Enabling DMP..."));
         mpu.setDMPEnabled(true);
-/*
-        // enable Arduino interrupt detection
-        Serial.print(F("Enabling interrupt detection (Arduino external interrupt "));
-        Serial.print(digitalPinToInterrupt(INTERRUPT_PIN));
-        Serial.println(F(")..."));
-        attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), dmpDataReady, RISING);
-        mpuIntStatus = mpu.getIntStatus();
-*/
+
         // set our DMP Ready flag so the main loop() function knows it's okay to use it
         // Serial.println(F("DMP ready! Waiting for first interrupt..."));
         dmpReady = true;
@@ -367,29 +344,21 @@ void setupSensors() {
 }
 
 void detectFatigue() {
-//  int emg_mean = 0; // mean absolute value of emg during entire session
-//  int emg_samples = 0; //number of emg samples taken during entire session
-//  int emg_startup_count = 0; // number of readings for the emg to calibrate and initialise
-  // TimePlot Plot;
   int EMGValue = analogRead(EMG_INPUT_PIN);
-//  Plot.SendData("Raw-EMG", EMGValue/1000.0);
   if (emg_startup_count < 150) {
     emg_startup_count++;
   } else {
     emg_samples++;
     emg_mean = (emg_mean * (emg_samples - 1) + EMGValue/1000.0) / emg_samples;
-//    Plot.SendData("EMG-Mean", emg_mean);
   }
   // Set flag: Dancer Fatigue Flag
   if (fatigue_flag == 0) {
     if (emg_mean >= fatigue_threshold) {
       fatigue_flag = 1; // not fatigued -> fatigued
-//      Plot.SendData("fatigue_flag", fatigue_flag);
     }
   } else if (fatigue_flag == 1) {
     if (emg_mean < fatigue_threshold) {
       fatigue_flag = 0; // fatigued -> not fatigued
-//      Plot.SendData("fatigue_flag", fatigue_flag);
     }
   }
   
@@ -421,14 +390,6 @@ void readSensors() {
         GyroRoll = GyroRollFilter.Current();
              
         detectActivity();
-
-//        TimePlot Plot;
-//        Plot.SendData("Filtered-AccX", AccXFilter.Current());
-//        Plot.SendData("Filtered-AccY", AccYFilter.Current());
-//        Plot.SendData("Filtered-AccZ", AccZFilter.Current());
-//        Plot.SendData("Filtered-GyroYaw", GyroYawFilter.Current());
-//        Plot.SendData("Filtered-GyroPitch", GyroPitchFilter.Current());
-//        Plot.SendData("Filtered-GyroRoll", GyroRollFilter.Current());
 
       // blink LED to indicate activity
       blinkState = !blinkState;
